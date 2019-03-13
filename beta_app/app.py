@@ -5,25 +5,6 @@ import queries
 from time import sleep
 from werkzeug.wsgi import LimitedStream
 
-# Code to avoid connection reset by peer error
-class StreamConsumingMiddleware(object):
-
-    def __init__(self, app):
-        self.app = app
-
-    def __call__(self, environ, start_response):
-        stream = LimitedStream(environ['wsgi.input'],
-                               int(environ['CONTENT_LENGTH'] or 0))
-        environ['wsgi.input'] = stream
-        app_iter = self.app(environ, start_response)
-        try:
-            stream.exhaust()
-            for event in app_iter:
-                yield event
-        finally:
-            if hasattr(app_iter, 'close'):
-                app_iter.close()
-
 def login_user(user_tup):
 	print "login_user"
 	if user_tup == None:
@@ -218,5 +199,4 @@ def browseview():
 	return render_template('browse.html')
 
 if __name__ == '__main__':
-	app.wsgi_app = StreamConsumingMiddleware(app.wsgi_app)
 	app.run(host='0.0.0.0',threaded=True,debug=True,port=5000)
